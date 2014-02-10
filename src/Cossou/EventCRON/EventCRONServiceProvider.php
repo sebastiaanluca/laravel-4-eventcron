@@ -12,7 +12,7 @@ class EventCRONServiceProvider extends ServiceProvider {
 	 *
 	 * @var bool
 	 */
-	protected $defer = FALSE;
+	protected $defer = TRUE;
 
 	////////////////////////////////////////////////////////////////
 
@@ -41,14 +41,4 @@ class EventCRONServiceProvider extends ServiceProvider {
 		// Let users easily reference this class
 		AliasLoader::getInstance()->alias('EventCRON', 'Cossou\EventCRON\Models\EventCRON');
 	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides() {
-		return array();
-	}
-
 }

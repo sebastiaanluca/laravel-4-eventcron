@@ -40,7 +40,7 @@ class Trigger extends Command {
 	 */
 	public function fire() {
 		$this->comment('Triggering non-processed queue items for "' . $this->argument('event') . '".');
-		$count = EventCron::flushDB($this->argument('event'));
+		$count = EventCron::flush($this->argument('event'));
 
 		if(is_null($count)) $this->error('EventCRON not enabled. See your configuration file.');
 		else $this->info("Done! Triggered $count events.");
