@@ -42,5 +42,5 @@ return array(
 	|
 	*/
 
-	'log_events'               => TRUE,
+	'log_events'               => FALSE,
 );

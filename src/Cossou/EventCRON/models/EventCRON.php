@@ -9,7 +9,11 @@ use Log;
 
 class EventCron extends \Event {
 
-	// TODO: clear old entries
+	// TODO: clear old entries (config option to check when flushing queues + manual function call)(params? Relative date, number of processed entries, ... Always for processed/cancelled entries)
+	// TODO: cancel all unprocessed events of a specific type (new status)
+	// TODO: cancel all unprocessed events (also new status)
+	// TODO: get a list of all events of a specific type with a specific status (either by array or something like `UNPROCESSED | PROCESSED | PROCESSING`)
+	// TODO: get a list of all events with a specific status (either by array or something like `UNPROCESSED | PROCESSED | PROCESSING`)
 
 	/**
 	 * Execute an array of events stored as queues in the database.

@@ -2,7 +2,6 @@
 
 use Cossou\EventCRON\Commands\Trigger;
 use Cossou\EventCRON\Commands\TriggerAll;
-use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
 
 class EventCRONServiceProvider extends ServiceProvider {
@@ -39,6 +38,7 @@ class EventCRONServiceProvider extends ServiceProvider {
 		$this->package('cossou/eventcron');
 
 		// Let users easily reference this class
-		AliasLoader::getInstance()->alias('EventCRON', 'Cossou\EventCRON\Models\EventCRON');
+		// INFO: doesn't seem to work
+		//	AliasLoader::getInstance()->alias('EventCRON', 'Cossou\EventCRON\Models\EventCRON');
 	}
 }
