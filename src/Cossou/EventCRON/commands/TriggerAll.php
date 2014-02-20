@@ -2,8 +2,6 @@
 
 use Cossou\EventCRON\Models\EventCron;
 use Illuminate\Console\Command;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
 
 class TriggerAll extends Command {
 

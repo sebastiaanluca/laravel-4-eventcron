@@ -108,8 +108,9 @@ class EventCron extends \Event {
 	 * @throws \Exception
 	 */
 	public static function flushAll() {
-		if(!Config::get('eventcron::config.enabled'))
+		if(!Config::get('eventcron::config.enabled')) {
 			return NULL;
+		}
 
 		if(Config::get('eventcron::config.run_only_from_cli') ? App::runningInConsole() : TRUE) {
 			if(Config::get('eventcron::config.log_events')) {
