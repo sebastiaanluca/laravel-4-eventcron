@@ -58,7 +58,7 @@ class EventCron extends \Event {
 	 */
 	public static function queue($event, $data = array(), Carbon $executeAt = NULL) {
 		if(is_null($executeAt)) $executeAt = Carbon::now();
-		return EventCronBase::create(array('event' => $event, 'arguments' => serialize($data), 'execute_at' => $executeAt));
+		return EventCRONBase::create(array('event' => $event, 'arguments' => serialize($data), 'execute_at' => $executeAt));
 	}
 
 	/**
@@ -82,7 +82,7 @@ class EventCron extends \Event {
 				Log::info('Cronjob started!');
 			}
 
-			$events = EventCronBase::where('event', '=', $queue)
+			$events = EventCRONBase::where('event', '=', $queue)
 				->where('status', '=', EventCRONBase::UNPROCESSED_STATUS)
 				->where('execute_at', '<=', Carbon::now())
 				->orderBy('created_at', 'ASC')
@@ -117,7 +117,7 @@ class EventCron extends \Event {
 				Log::info('Cronjob started!');
 			}
 
-			$events = EventCronBase::where('status', '=', EventCRONBase::UNPROCESSED_STATUS)
+			$events = EventCRONBase::where('status', '=', EventCRONBase::UNPROCESSED_STATUS)
 				->where('execute_at', '<=', Carbon::now())
 				->orderBy('created_at', 'ASC')
 				->take(Config::get('eventcron::config.max_events_per_execution'))
