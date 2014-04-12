@@ -103,7 +103,7 @@ class EventCRONManager {
 
 			return $events->count();
 		} else {
-			throw new Exception("This function can only be executed by the CLI (php artisan Eventcron::run queue-name) or just change the configuration file.", 1);
+			throw new Exception("This function can only be executed from the CLI.", 1);
 		}
 	}
 
@@ -137,7 +137,7 @@ class EventCRONManager {
 
 			return $events->count();
 		} else {
-			throw new Exception("This function can only be executed by the CLI (php artisan Eventcron::run queue-name) or just change the configuration file.", 1);
+			throw new Exception("This function can only be executed from the CLI.", 1);
 		}
 	}
 }

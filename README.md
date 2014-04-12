@@ -1,143 +1,199 @@
-# Laravel EventCron Bundle
-=======================
+# Laravel 4 EventCRON
 
-Laravel bundle to queue Events to a database and later fire them through artisan or a CronJob.
+A Laravel 4 package that enables you to queue events and fire them in sequence, or at a specific time in the future.
 
-## Introduction
 
-I created this bundle to run events in a queue every x minutes through a CronJob (or manually).
+## Use Cases
 
-It's an extension of the original [_Laravel Event_](http://laravel.com/docs/events "Event"), where you can queue events to table to be fired later.
+- Sending a user an e-mail 24 hours after registration
+- Scheduled mailing and newsletters
+- Time consuming processes that would run better at night
+- Firing events in a continuous matter (just queue a new event once it's fired)
 
-### Some examples
-
-__*Example 1:*__ 
-
-You want to schedule an e-mail to an user 24h after the registration.  
-```php
-	EventCron::queueDB('email24', array('user_id' => 1, 'message' => 'welcome'), date("Y-m-d H:i:s", strtotime("+24 hours")));
-```
-
-__*Example 2:*__ 
-
-You have a time consumption action and you don't want to block the execution ([Kind of non-blocking execution](http://en.wikipedia.org/wiki/Non-blocking_algorithm) :).
-
-__*Example 3:*__ 
-
-You can also think about newsletter systems.
-
-__Note:__ this bundle does not attempt to be a replacement for Workers. You are not off loading processes to another machine. The processes are still executed in the same server has your own app.
 
 ## Installation
 
-    php artisan bundle:install eventcron
+Add the package to your composer.json and run `composer update`.
 
-Add it to __application/bundles.php__:
-```php
-    return array(
-        ...
-        'eventcron' => array(
-            'auto'  => true
-        ),
-        ...
-    );
-```   
-Now __migrate__ to create the table:
-
-	php artisan migrate eventcron
-
-Now play with it. For example:
-```php	
-	Route::get('addevent', function()
-	{
-		...
-		// In Real time: 
-		// Event::fire('log_something', array('FOOBAR', array('foo' => 'bar')));
-
-		// With EventCron:
-		EventCron::queueDB('log_something', array('FOOBAR', array('foo' => 'bar')));
-		...
-	});
-	
-	// The event
-	Event::listen('log_something', function($str, $arr)
-	{
-		// Note: If you use a bundle inside please use Bundle::start('yourbundle');
-		Log::info('str => ' . $str . ' arr => ' . print_r($arr, true));
-	});
-```	
-Setup the CronJob:
-
-	*/1 * * * * root php /var/www/laravel/artisan Eventcron::run log_something --env=local
-	
-Or just run the command:
-
-	php artisan Eventcron::run log_something --env=local
-
-__Note:__ If your CLI PHP doesn't have permissions to write to the log file just add "sudo php artisan ..." 
-	
-Thats it, the cron will fire all the __log_something__ events in the queue by [FIFO](http://en.wikipedia.org/wiki/FIFO) order.
-
-If you want there is a method to run all the queues in the table:
-
-	php artisan Eventcron::run:runall --env=local
-
-You can also fire the events through a route (*which I don't recommend*). Just change the eventcron/config/config.php file to allow it:
-
-	'run_only_from_cli' => false,
-	
-And then:
-```php
-	Route::get('fire', function()
-	{
-		EventCron::flushDB('log_something');
-	});
-```	
-Notice you can pass a __date__ to the queue:
-```php
-	 EventCron::queueDB('log_something', array('FOOBAR', array('foo' => 'bar')), date("Y-m-d H:i:s", strtotime("+2 hours")));
 ```
-## API	 
-
-Add event to a queue:
-```php
-	EventCron::queueDB($name = "string", $args = array() [, $date = date("Y-m-d H:i:s")]);
-```
-Flush events from a queue:
-```php
-	EventCron::flushDB($name = "string");
-```
-Flush all the events:
-```php
-	EventCron::flushAllDB();
+{
+	"require": {
+		"cossou/eventcron": "*"
+	}
+}
 ```
 
-## Configurations
+Add the service provider in `app/config/app.php`:
 
-__config.php__ (eventcron/config/config.php)
+```
+'providers' => [
+	…
+	
+	'Cossou\EventCRON\EventCRONServiceProvider'
+]
+```
 
-###enabled (default true)
+__Optionally__ add the facade to your aliases:
 
-Well, this one is easy. Right?
+```
+'aliases' => [
+	…
+	
+	'EventCRON' => 'Cossou\EventCRON\Facades\EventCRON'
+]
+```
+
+Perform the migration to create the database tables:
+
+```
+php artisan migrate --package=cossou/eventcron
+```
+
+
+## How to Use
+
+To get started, there are three ways in which you can utilize this package.
+
+Via the facade, if you added it to your configuration file (preferred way):
+
+```
+EventCRON::queue('myevent');
+```
+
+By using the Laravel IoC container:
+
+```
+App::make('eventcron')->queue('myevent');
+```
+
+Directly through the class:
+
+```
+$eventcron = new Cossou\EventCRON\EventCRONManager();
+$eventcron->queue('myevent');
+```
+
+
+### Adding Events
+
+#### First Steps
+
+As shown, you can just queue your event and listen to it elsewhere.
+
+```
+EventCRON::queue('myevent');
+```
+
+```
+Event::listen('myevent', function()
+{
+	echo 'myevent just got fired!';
+});
+```
+
+Flushing the queue for this event will fire all of them at once, since no time has been set.
+
+
+#### Using arguments
+
+You can also pass some data to your event handler in the form of an array.
+
+```
+EventCRON::queue('myevent', ['string', $variable, 12, new Object()]);
+```
+
+Laravel will then extract all of these variables and pass them to your event handler:
+
+```
+Event::listen('myevent', function($string, $variable, $number, $object)
+{
+	echo 'myevent just got fired with some neat arguments';
+	dd($string, variable, $number, $object);
+});
+```
+
+
+#### Timing Is Everything
+
+Of course, the main idea of this package is to schedule your events. Just pass a Carbon instance as third parameter:
+
+```
+EventCRON::queue('myevent', NULL, Carbon\Carbon::now()->addHour());
+```
+
+This event will only be triggered one hour from now.
+
+_Carbon is a nice extension to PHP's datetime class(es). For more info: https://github.com/briannesbitt/Carbon._
+
+
+### Flushing the Queue
+
+Now that you've added all these events, you'd want them to be triggered so your whole setup actually does something.
+
+To trigger the queue for a single event:
+
+```
+EventCRON::flush('myevent');
+```
+
+To trigger the queue of all events:
+
+```
+EventCRON::flushAll();
+```
+
+__Please note:__ events with an execution time set will only be triggered if that moment is in the past. In addition, if the configuration file states `enabled` as `false` or `run_only_from_cli` as `true` (and you're flushing a queue from code), nothing will happen.
+
+
+### The CLI + Creating a CRON Job
+
+The following commands are used to flush queues from the CLI:
+
+```
+php artisan eventcron:trigger myevent
+```
+
+```
+php artisan eventcron:trigger:all
+```
+
+On most occasions though, you'd trigger events in your queue with a CRON job instead of directly from code or the CLI.
+
+Use `crontab -e` or `sudo crontab -e` to get into your CRON file and add the following line at the end to flush all queues every minute (because you never know when you've scheduled an event):
+
+```
+*/1 * * * * php /var/www/myproject/artisan eventcron:trigger:all
+```
+
+
+## Configuration
+
+Publish the package's configuration file with:
+
+```
+php artisan config:publish cossou/eventcron
+```
+
+### enabled (default `true`)
+
+Simply enable or disable the package.
 
 	BOOLEAN true / false
 	
-###run_only_from_cli (default true)
+### run_only_from_cli (default `true`)
 
-Allow the CronJob to be run only from CLI (artisan).
+Allow the flushing of queues only from your command line interface (CLI).
 
 	BOOLEAN true / false
 	
-###max_events_per_execution (default 50)
+### max_events_per_execution (default `50`)
 
-Max number of events to fire in one run (set it to a lower number if you don't want the server go slower).
+Maximum number of events to fire in one run (set it to a lower number if you don't want the server go slower).
 
 	INTEGER number
 
-###log_events (default true)
+### log_events (default `false`)
+
+Whether or not to write debug messages your log.
 
 	BOOLEAN true / false
-	
-##Questions? Problems?
-
-Drop me a line at <cossou@gmail.com> or [@cossou](https://twitter.com/cossou)
