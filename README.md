@@ -25,7 +25,7 @@ Add the package to your composer.json and run `composer update`.
 
 Add the service provider in `app/config/app.php`:
 
-```
+```php
 'providers' => [
 	…
 	
@@ -35,7 +35,7 @@ Add the service provider in `app/config/app.php`:
 
 __Optionally__ add the facade to your aliases:
 
-```
+```php
 'aliases' => [
 	…
 	
@@ -56,19 +56,19 @@ To get started, there are three ways in which you can utilize this package.
 
 Via the facade, if you added it to your configuration file (preferred way):
 
-```
+```php
 EventCRON::queue('myevent');
 ```
 
 By using the Laravel IoC container:
 
-```
+```php
 App::make('eventcron')->queue('myevent');
 ```
 
 Directly through the class:
 
-```
+```php
 $eventcron = new Cossou\EventCRON\EventCRONManager();
 $eventcron->queue('myevent');
 ```
@@ -80,11 +80,11 @@ $eventcron->queue('myevent');
 
 As shown, you can just queue your event and listen to it elsewhere.
 
-```
+```php
 EventCRON::queue('myevent');
 ```
 
-```
+```php
 Event::listen('myevent', function()
 {
 	echo 'myevent just got fired!';
@@ -98,13 +98,13 @@ Flushing the queue for this event will fire all of them at once, since no time h
 
 You can also pass some data to your event handler in the form of an array.
 
-```
+```php
 EventCRON::queue('myevent', ['string', $variable, 12, new Object()]);
 ```
 
 Laravel will then extract all of these variables and pass them to your event handler:
 
-```
+```php
 Event::listen('myevent', function($string, $variable, $number, $object)
 {
 	echo 'myevent just got fired with some neat arguments';
@@ -117,7 +117,7 @@ Event::listen('myevent', function($string, $variable, $number, $object)
 
 Of course, the main idea of this package is to schedule your events. Just pass a Carbon instance as third parameter:
 
-```
+```php
 EventCRON::queue('myevent', NULL, Carbon\Carbon::now()->addHour());
 ```
 
@@ -132,13 +132,13 @@ Now that you've added all these events, you'd want them to be triggered so your 
 
 To trigger the queue for a single event:
 
-```
+```php
 EventCRON::flush('myevent');
 ```
 
 To trigger the queue of all events:
 
-```
+```php
 EventCRON::flushAll();
 ```
 
