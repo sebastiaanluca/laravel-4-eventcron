@@ -1,5 +1,6 @@
 <?php
 
+use Doctrine\DBAL\Schema\Schema;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 

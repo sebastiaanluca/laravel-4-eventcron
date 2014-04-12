@@ -8,10 +8,11 @@ class EventCRONServiceProvider extends ServiceProvider {
 
 	/**
 	 * Indicates if loading of the provider is deferred.
+	 * Set to false (default) to load configuration at boot
 	 *
 	 * @var bool
 	 */
-	protected $defer = TRUE;
+	protected $defer = FALSE;
 
 	////////////////////////////////////////////////////////////////
 
@@ -25,20 +26,21 @@ class EventCRONServiceProvider extends ServiceProvider {
 		$this->app['eventcron.commands.trigger'] = $this->app->share(function ($app) {
 			return new Trigger();
 		});
+
 		$this->app['eventcron.commands.trigger.all'] = $this->app->share(function ($app) {
 			return new TriggerAll();
 		});
 
-		$this->commands('eventcron.commands.trigger');
-		$this->commands('eventcron.commands.trigger.all');
+		$this->commands(['eventcron.commands.trigger', 'eventcron.commands.trigger.all']);
+
+		/* Register singleton in IoC container */
+		$this->app['eventcron'] = $this->app->share(function ($app) {
+			return $app->make('Cossou\EventCRON\EventCRONManager');
+		});
 	}
 
 	public function boot() {
 		// Set package
 		$this->package('cossou/eventcron');
-
-		// Let users easily reference this class
-		// INFO: doesn't seem to work
-		//	AliasLoader::getInstance()->alias('EventCRON', 'Cossou\EventCRON\Models\EventCRON');
 	}
 }

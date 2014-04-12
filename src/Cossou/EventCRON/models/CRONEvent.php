@@ -1,8 +1,9 @@
 <?php namespace Cossou\EventCRON\Models;
 
 use Carbon\Carbon;
+use Eloquent;
 
-class EventCRONBase extends \Eloquent {
+class CRONEvent extends Eloquent {
 	protected $table = 'eventcron';
 	protected $guarded = array('id');
 	protected $dates = array('execute_at', 'started_at', 'ended_at');

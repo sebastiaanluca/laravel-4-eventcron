@@ -1,13 +1,15 @@
-<?php namespace Cossou\EventCRON\Models;
+<?php namespace Cossou\EventCRON;
 
 use App;
 use Carbon\Carbon;
 use Config;
+use Cossou\EventCRON\Models\CRONEvent;
 use Event;
 use Exception;
 use Log;
 
-class EventCron extends \Event {
+class EventCRONManager {
+	protected $cronevent;
 
 	// TODO: clear old entries (config option to check when flushing queues + manual function call)(params? Relative date, number of processed entries, ... Always for processed/cancelled entries)
 	// TODO: cancel all unprocessed events of a specific type (new status)
@@ -15,24 +17,28 @@ class EventCron extends \Event {
 	// TODO: get a list of all events of a specific type with a specific status (either by array or something like `UNPROCESSED | PROCESSED | PROCESSING`)
 	// TODO: get a list of all events with a specific status (either by array or something like `UNPROCESSED | PROCESSED | PROCESSING`)
 
+	public function __construct(CRONEvent $eventcron){
+		$this->cronevent = $eventcron;
+	}
+
 	/**
 	 * Execute an array of events stored as queues in the database.
 	 *
 	 * @param $events
 	 * @return int
 	 */
-	protected static function executeQueue($events) {
+	protected function executeQueue($events) {
 		$totalExecutionTime = 0;
 
 		foreach($events as $queue) {
 			$queue->started_at = Carbon::now();
-			$queue->status = EventCRONBase::PROCESSING_STATUS;
+			$queue->status = CRONEvent::PROCESSING_STATUS;
 			$queue->save(); // Extra query though
 
 			// Fire away!
 			Event::fire($queue->event, unserialize($queue->arguments));
 
-			$queue->status = EventCRONBase::PROCESSED_STATUS;
+			$queue->status = CRONEvent::PROCESSED_STATUS;
 			$queue->ended_at = Carbon::now();
 			$queue->save(); // Save again
 
@@ -56,9 +62,9 @@ class EventCron extends \Event {
 	 * @param  Carbon $execute At Date to execute the event at
 	 * @return int
 	 */
-	public static function queue($event, $data = array(), Carbon $executeAt = NULL) {
+	public function queue($event, $data = array(), Carbon $executeAt = NULL) {
 		if(is_null($executeAt)) $executeAt = Carbon::now();
-		return EventCRONBase::create(array('event' => $event, 'arguments' => serialize($data), 'execute_at' => $executeAt));
+		return $this->cronevent->create(array('event' => $event, 'arguments' => serialize($data), 'execute_at' => $executeAt));
 	}
 
 	/**
@@ -68,7 +74,7 @@ class EventCron extends \Event {
 	 * @return null
 	 * @throws \Exception
 	 */
-	public static function flush($queue) {
+	public function flush($queue) {
 		if(!Config::get('eventcron::config.enabled')) {
 			return NULL;
 		}
@@ -82,14 +88,14 @@ class EventCron extends \Event {
 				Log::info('Cronjob started!');
 			}
 
-			$events = EventCRONBase::where('event', '=', $queue)
-				->where('status', '=', EventCRONBase::UNPROCESSED_STATUS)
+			$events = $this->cronevent->where('event', '=', $queue)
+				->where('status', '=', CRONEvent::UNPROCESSED_STATUS)
 				->where('execute_at', '<=', Carbon::now())
 				->orderBy('created_at', 'ASC')
 				->take(Config::get('eventcron::config.max_events_per_execution'))
 				->get();
 
-			$totalExecutionTime = static::executeQueue($events);
+			$totalExecutionTime = $this->executeQueue($events);
 
 			if(Config::get('eventcron::config.log_events')) {
 				Log::info('Cronjob ended! Total execution time (in seconds): ' . $totalExecutionTime);
@@ -107,7 +113,7 @@ class EventCron extends \Event {
 	 * @return null
 	 * @throws \Exception
 	 */
-	public static function flushAll() {
+	public function flushAll() {
 		if(!Config::get('eventcron::config.enabled')) {
 			return NULL;
 		}
@@ -117,13 +123,13 @@ class EventCron extends \Event {
 				Log::info('Cronjob started!');
 			}
 
-			$events = EventCRONBase::where('status', '=', EventCRONBase::UNPROCESSED_STATUS)
+			$events = $this->cronevent->where('status', '=', CRONEvent::UNPROCESSED_STATUS)
 				->where('execute_at', '<=', Carbon::now())
 				->orderBy('created_at', 'ASC')
 				->take(Config::get('eventcron::config.max_events_per_execution'))
 				->get();
 
-			$totalExecutionTime = $totalExecutionTime = static::executeQueue($events);
+			$totalExecutionTime = $this->executeQueue($events);
 
 			if(Config::get('eventcron::config.log_events')) {
 				Log::info('Cronjob ended! Total execution time (in seconds): ' . $totalExecutionTime);
