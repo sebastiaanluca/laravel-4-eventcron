@@ -1,5 +1,6 @@
 <?php
 
+use Doctrine\DBAL\Schema\Schema;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 
@@ -15,16 +16,15 @@ class CossouEventcronCreateBaseTable extends Migration {
 			$table->engine = 'InnoDB';
 
 			$table->increments('id');
-			$table->string('queue', 30)->index();
-			$table->date('date');
 
-			$table->date('runned_at');
-
-			$table->string('started_at', 18);
-			$table->string('ended_at', 18);
-
+			$table->string('event', 64)->index();
 			$table->text('arguments');
-			$table->boolean('processed')->default(FALSE);
+			$table->dateTime('execute_at')->default('0000-00-00 00:00:00');
+
+			$table->dateTime('started_at')->nullable();
+			$table->dateTime('ended_at')->nullable();
+
+			$table->tinyInteger('status')->default(0);
 
 			$table->timestamps();
 		});

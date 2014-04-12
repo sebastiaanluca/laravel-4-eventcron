@@ -1,9 +1,7 @@
 <?php namespace Cossou\EventCRON\Commands;
 
-use Cossou\EventCRON\Models\EventCron;
+use App;
 use Illuminate\Console\Command;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
 
 class TriggerAll extends Command {
 
@@ -18,7 +16,7 @@ class TriggerAll extends Command {
 	 *
 	 * @var string
 	 */
-	protected $description = 'Trigger all non-processed events.';
+	protected $description = 'Trigger all queued events.';
 
 	////////////////////////////////////////////////////////////////
 
@@ -29,7 +27,7 @@ class TriggerAll extends Command {
 	 */
 	public function fire() {
 		$this->comment('Triggering all non-processed queue items.');
-		$count = EventCron::flushAllDB();
+		$count = App::make('eventcron')->flushAll();
 
 		if(is_null($count)) $this->error('EventCRON not enabled. See your configuration file.');
 		else $this->info("Done! Triggered $count events.");
