@@ -43,10 +43,17 @@ __Optionally__ add the facade to your aliases:
 ]
 ```
 
-Perform the migration to create the database tables:
+If you are using Laravel 4.0 ,perform the migration to create the database tables:
 
 ```
 php artisan migrate --package=cossou/eventcron
+```
+
+Or if you are using Laravel 4.1, publish the package migration to your application
+
+```
+php artisan migrate:publish cossou/eventcron
+php artisan migrate
 ```
 
 
